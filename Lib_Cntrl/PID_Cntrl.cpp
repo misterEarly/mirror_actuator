@@ -9,9 +9,21 @@
 PID_Cntrl::PID_Cntrl(float P, float I, float D, float tau_f, float Ts, float uMin, float uMax)
 {
     // ------------------
-    this->P = P;
-    this->I = I;
-    this->D = D;
+    this->kp = P;
+    this->ki = I;
+    this->kd = D;
+    this->tau_f = tau_f;
+    this->Ts = Ts;
+    this->uMin = uMin;
+    this->uMax = uMax;
+    reset(0);
+}
+void PID_Cntrl::setCoefficients(float P, float I, float D, float tau_f, float Ts, float uMin, float uMax)
+{
+    // ------------------
+    this->kp = P;
+    this->ki = I;
+    this->kd = D;
     this->tau_f = tau_f;
     this->Ts = Ts;
     this->uMin = uMin;
@@ -24,6 +36,8 @@ PID_Cntrl::~PID_Cntrl() {}
 void PID_Cntrl::reset(float initValue)
 {
     // -----------------------
+    Ipart = initValue;
+    e_old = 0;
     
 }
 
@@ -31,7 +45,12 @@ void PID_Cntrl::reset(float initValue)
 float PID_Cntrl::update(float e)
 {
     // the main update 
-   return 0; 
+    float Ppart = kp * e;
+    Ipart = Ipart + ki*Ts/2.0f * ( e + e_old);
+    e_old = e;
+    Ipart = saturate(Ipart);
+
+   return Ppart + Ipart; 
    
 }
 

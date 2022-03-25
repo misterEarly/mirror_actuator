@@ -26,7 +26,7 @@ ControllerLoop::~ControllerLoop() {}
 // ----------------------------------------------------------------------------
 // this is the main loop called every Ts with high priority
 void ControllerLoop::loop(void) {
-  float i_des;
+  float i_des, v_des;
   uint8_t k = 0;
   while (1) {
     ThisThread::flags_wait_any(threadFlag);
@@ -42,15 +42,25 @@ void ControllerLoop::loop(void) {
              // != 0)
         is_initialized = true;
     } else {
-      i_des = myGPA.update(i_des, m_data->sens_Vphi[0]);
+
       // ------------------------ do the control first
       // calculate desired currents here, you can do "anything" here,
       // if you like to refer to values e.g. from the gui or from the trafo,
       // please use m_data->xxx values,
 
+      //   i_des = myGPA.update(i_des, m_data->sens_Vphi[0]);
+
       // ------------------------ write outputs
-      m_sa->write_current(1, i_des);
-      m_sa->write_current(0, 0); // set 2nd motor to 0A
+
+      v_des = 50;
+
+      float error = v_des - m_data->sens_Vphi[0];
+
+      i_des = v_cntrl[0](error);
+
+      m_sa->write_current(0, i_des);
+      m_sa->write_current(1, 0); // set 2nd motor to 0A
+
       m_sa->enable_motors(true); // enable motors
       m_sa->set_laser_on_off(m_data->laser_on);
     }
